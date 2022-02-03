@@ -7,50 +7,6 @@ import os
 
 import gr_types
 
-# == Main ========================================================================
-
-def main():
-    while run_cmd(shift('Command')):
-        pass
-
-def run_cmd(cmd, db_name='data.json'):
-    if cmd is None:
-        print('exit')
-        return False
-    if cmd == '':
-        print('The command is empty')
-    elif cmd == 'reset':
-        graph = Graph(db_name)
-        graph.reset()
-        return True
-    elif cmd == 'ls':
-        data = Graph(db_name)
-        all_nodes = data.find()
-        print(json.dumps(all_nodes, indent=4))
-    elif cmd == 'add':
-        data = Graph(db_name)
-        entry = json.loads(input())
-        data.insert(entry)
-    elif cmd == 'rem':
-        pass
-    elif cmd == 'exit':
-        return False
-    else:
-        print('The command "{}" is unknown'.format(cmd))
-    return True
-
-def shift(what):
-    if len(sys.argv) == 1:
-        try:
-            return input(what + ': ')
-        except EOFError:
-            return None
-    res = sys.argv[1]
-    sys.argv = [sys.argv[0]] + sys.argv[2:]
-    return res
-
-# == Main Logic ==================================================================
-
 class GrError(RuntimeError):
     pass
 
@@ -74,18 +30,14 @@ class GrError(RuntimeError):
 
 class Graph:
 
-    def __init__(self, location):
-        self.data = FileDB(location)
+    def __init__(self, data):
+        self.data = data
 
     #== Simple functions for elementary operations =============================
 
-    # checks whether a thing is a valid id
-    def is_id(self, identifier):
-        return isinstance(identifier, int)
-
     # returns id when given either id or the whole node
     def get_id(self, entry_or_id):
-        if self.is_id(entry_or_id):
+        if is_id(entry_or_id):
             return entry_or_id
         if 'id' in entry_or_id:
             assert entry_or_id['id'] is not None
@@ -105,7 +57,7 @@ class Graph:
     # returns an updated version of the entry given entry or its id
     def get(self, entry_or_id):
         node_id = self.get_id(entry_or_id)
-        if not self.is_id(node_id):
+        if not is_id(node_id):
             raise GrError('node_id should be int, it is ' + str(type(node_id)))
         nodes = self.data.db['nodes']
         if str(node_id) in nodes:
@@ -269,6 +221,10 @@ class Graph:
 
 # == Utility functions ===========================================================
 
+# checks whether a thing is a valid id
+def is_id(identifier):
+    return isinstance(identifier, int)
+
 # functions ref, unwrap, and wrap are made for reference work
 # as each reference is coded as {'id': identificator} it is easier
 # to have these functions to work with the identificator itself
@@ -310,35 +266,3 @@ def added_removed_elements_ids(old_entry, new_entry, attr_name, is_array):
     old_set = set(get_entity_attribute_array(old_entry, attr_name, is_array))
     new_set = set(get_entity_attribute_array(new_entry, attr_name, is_array))
     return (list(new_set - old_set), list(old_set - new_set))
-
-# == Data Utility ================================================================
-
-class FileDB(object):
-
-    def __init__(self, location):
-        self.location = os.path.expanduser(location)
-        self.db = None
-        self.load(self.location)
-
-    def load(self, location):
-        if os.path.exists(location):
-            self.db = json.load(open(self.location, "r"))
-        else:
-            self.db = {}
-        return True
-
-    def save(self):
-        try:
-            json.dump(self.db, open(self.location, "w+"), indent=4)
-            return True
-        except:
-            return False
-
-    def delete(self):
-        if os.path.exists(self.location):
-            os.remove(self.location)
-
-# == Main Initialization =========================================================
-
-if __name__ == '__main__':
-    main()
