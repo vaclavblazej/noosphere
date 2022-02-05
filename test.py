@@ -99,41 +99,39 @@ def type_integrity():
     for attr in attrs:
         graph.insert(attr)
         test_type['attrs'].append(gr.ref(attr))
-        graph.update(test_type)
-    node = gr_types.Type('Test', 'test description')
+    graph.update(test_type)
+    node = {'type': gr.ref(test_type)}
     # okay simple attributes
+    node['intpar'] = 'test text'
+    insert_fails(graph, node) # wrong type
+    node['intpar'] = []
+    insert_fails(graph, node) # wrong array
     node['intpar'] = 1
     insert_okay(graph, node)
-    node['intpar'] = 'test text'
+    node['strpar'] = 1
     insert_fails(graph, node)
-    # todo here - continue testing
-    #  node['test'] = 1.2
-    #  insert_okay(graph, node)
-    #  node['test'] = 'test'
-    #  insert_okay(graph, node)
-    #  node['test'] = {'id': 100}
-    #  insert_okay(graph, node)
-    #  node['test'] = []
-    #  insert_okay(graph, node)
-    #  node['test'] = [1, 2, 3]
-    #  insert_okay(graph, node)
-    #  node['test'] = ["a", "b"]
-    #  insert_okay(graph, node)
-    #  node['test'] = [{'id': 1}, {'id': 2}]
-    #  insert_okay(graph, node)
-    # malformed simple attributes
-    #  node['test'] = {}
-    #  insert_fails(graph, node) # empty struct attr
-    #  node['test'] = {'id': 100, 'extra': False}
-    #  insert_fails(graph, node) # extra attrs in ref
-    #  node['test'] = [{'bad': 10}]
-    #  insert_fails(graph, node) # must contain okay entries
-    #  node['test'] = [[]]
-    #  insert_fails(graph, node) # may not contain array
-    #  node['test'] = [{}, {}]
-    #  insert_fails(graph, node) # may not contain invalid objects
-    #  node['test'] = ['a', 2]
-    #  insert_fails(graph, node) # arrays must be uniformly typed
+    node['strpar'] = 1.2
+    insert_fails(graph, node)
+    node['strpar'] = {}
+    insert_fails(graph, node)
+    node['strpar'] = 'test'
+    insert_okay(graph, node)
+    node['refpar'] = 'bad'
+    insert_fails(graph, node)
+    node['refpar'] = gr.ref(test_type) # good reference
+    insert_okay(graph, node)
+    node['boolpar'] = 1
+    insert_fails(graph, node)
+    node['boolpar'] = False
+    insert_okay(graph, node)
+    node['arrstrpar'] = [2, 3]
+    insert_fails(graph, node)
+    node['arrstrpar'] = []
+    insert_okay(graph, node)
+    node['arrstrpar'] = ['a', 'b']
+    insert_okay(graph, node)
+    node['arrrefpar'] = [gr.ref(test_type)]
+    insert_okay(graph, node)
 
 def simple_integrity():
     print('Simple integrity checking')

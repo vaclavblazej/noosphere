@@ -92,35 +92,33 @@ class Graph:
 
     #== data integrity checking ================================================
 
-    def get_attr_type(self, entry, attr):
+    def get_attr_type(self, entry, attr_name):
         if 'type' not in entry or entry['type'] is None:
             return None
         entry_type = self.get(entry['type'])
-        attrs_ids = unwrap(entry_type['attrs'])
-        res_attrs = self.find(lambda x: 'type' in x and x['type']['id'] == entry_type['id'], attrs_ids)
-        if len(res_attrs) == 0:
-            return None
-        return res_attrs[0]
-
+        attrs_type_ids = unwrap(entry_type['attrs'])
+        for attr_type_id in attrs_type_ids:
+            attr_type = self.get(attr_type_id)
+            if 'name' in attr_type and attr_type['name'] == attr_name:
+                return attr_type
+        return None
 
     def valid_entry(self, entry):
         for attr in entry.keys():
-            #  print(attr)
             assumed_type = None
             assumed_array = None
             if attr == 'dbtype':
                 if entry[attr] not in ['str', 'int', 'float', 'ref', 'bool', None]:
                     raise GrError('dbtype has invalid value {}'.format(entry[attr]))
-            #  self.get_attr_type(entry, attr)
-            #  if 'type' in entry and entry['type'] is not None:
-                #  entry_type = self.get(entry['type'])
-                #  res_attrs = self.find(lambda x: 'type' in x and 'name' in x['type'] and x['type']['name'] == 'Attr' and 'type' in x and x['type']['id'] == entry_type['id'], unwrap(entry_type['attrs']))
-                #  print('res:', res_attrs)
+            attr_type = self.get_attr_type(entry, attr)
+            if attr_type is not None:
+                assumed_type = attr_type['dbtype']
+                assumed_array = attr_type['array']
             self.valid_attribute(entry[attr], assumed_type, assumed_array)
 
     def valid_attribute(self, attr_value, assumed_type, assumed_array):
         attr_type = self.retrieve_value_type(attr_value)
-        is_array = attr_type == 'arr'
+        is_array = (attr_type == 'arr')
         if assumed_array is not None:
             if is_array and not assumed_array:
                 raise GrError('type is array byt should not be')
@@ -128,14 +126,17 @@ class Graph:
                 raise GrError('type is not array byt should be')
         if is_array:
             types = list(filter(lambda x: x is not None, map(self.retrieve_value_type, attr_value)))
-            for i in range(0, len(types)):
-                if types[i] == 'arr':
+            for val in types:
+                if val == 'arr':
                     raise GrError('array may not contain another array')
-                if types[0] != types[i]:
-                    raise GrError('array has two different types; there are elements of types {} and {}'.format(types[0], types[i]))
-        else:
-            if attr_type is not None and assumed_type is not None and assumed_type != attr_type:
-                raise GrError('data inconsistency detected; value {} should have been {}'.format(attr_value, assumed_type))
+                if types[0] != val:
+                    raise GrError('array has two different types; there are elements of types {} and {}'.format(types[0], val))
+            if len(attr_value) != 0:
+                attr_type = self.retrieve_value_type(attr_value[0])
+            else:
+                attr_type = 'none'
+        if attr_type != 'none' and assumed_type is not None and assumed_type != attr_type:
+            raise GrError('data inconsistency detected; value {} of type {} should have been {}'.format(attr_value, attr_type, assumed_type))
 
     def retrieve_value_type(self, attr_value):
         if attr_value is None:
@@ -144,12 +145,12 @@ class Graph:
             return 'arr'
         if isinstance(attr_value, str):
             return 'str'
+        if isinstance(attr_value, bool):
+            return 'bool'
         if isinstance(attr_value, int):
             return 'int'
         if isinstance(attr_value, float):
             return 'float'
-        if isinstance(attr_value, bool):
-            return 'bool'
         if 'id' in attr_value and len(attr_value.keys()) == 1:
             return 'ref'
         raise GrError('unrecognized data type of {}'.format(attr_value))
