@@ -8,30 +8,35 @@ import gr_data
 
 test_file = '.test_tmp.json'
 
+# == Run tests one by one ========================================================
+
 def test():
     print('testing')
     file_db_tests()
     simple_graph()
     simple_integrity()
     type_integrity()
-    #  references()
+    references()
+
+# == Utility functions ===========================================================
 
 def insert_okay(graph, node):
     graph.insert(node)
-    graph.delete(node)
+    graph.remove(node)
     node.pop('id')
 
 def insert_fails(graph, node):
     try:
         assert graph.insert(node) # fails on return
     except gr.GrError:
-        node.pop('id')
+        pass
 
+# == Test functions ==============================================================
 
 def references():
     print('Operations with references')
     graph = gr.Graph(gr_data.FileDB(test_file))
-    graph.reset()
+    graph.clear()
     gr_types.init_type_system(graph)
     for node in graph.find():
         assert node['type'] is not None
@@ -69,14 +74,13 @@ def references():
     assert len(graph.find(lambda x: 'node_id' in x and x['node_id'] == 1)[0]['children']) == 3
     # check that everyone has a parent
     for i in range(1, 6):
-        print(graph.find(lambda x: 'node_id' in x and x['node_id'] == i)[0])
         assert graph.find(lambda x: 'node_id' in x and x['node_id'] == i)[0]['parent'] is not None
-    #  graph.data.delete()
+    #  graph.data.clear()
 
 def type_integrity():
     print('Type integrity checking')
     graph = gr.Graph(gr_data.FileDB(test_file))
-    graph.reset()
+    graph.clear()
     gr_types.init_type_system(graph)
     test_type = gr_types.Type('Test Type', 'test desc')
     graph.insert(test_type)
@@ -100,9 +104,9 @@ def type_integrity():
     # okay simple attributes
     node['intpar'] = 1
     insert_okay(graph, node)
+    node['intpar'] = 'test text'
+    insert_fails(graph, node)
     # todo here - continue testing
-    #  node['intpar'] = 'test text'
-    #  insert_fails(graph, node)
     #  node['test'] = 1.2
     #  insert_okay(graph, node)
     #  node['test'] = 'test'
@@ -134,7 +138,7 @@ def type_integrity():
 def simple_integrity():
     print('Simple integrity checking')
     graph = gr.Graph(gr_data.FileDB(test_file))
-    graph.reset()
+    graph.clear()
     gr_types.init_type_system(graph)
     node = gr_types.Type('Test', 'test description')
     # okay simple attributes
@@ -171,16 +175,19 @@ def simple_integrity():
 def simple_graph():
     print('Graph elementary functionality')
     graph = gr.Graph(gr_data.FileDB(test_file))
-    graph.reset()
+    graph.clear()
     entity = {'name': 'test node'}
     graph.insert(entity)
     assert 'id' in entity # insert adds id to the entity
     entity_id = entity['id']
-    assert gr.is_id(entity_id) # the id is valid
-    entity_copy = graph.get(entity_id)
-    assert entity == entity_copy # what you save is what you get
-    entity_copy['is_copy'] = True
-    assert entity != entity_copy # the copy is not the original entity
+    assert graph.get_id(entity_id) # the id is valid
+    assert entity == graph.get(entity_id) # what you save is what you get
+    entity_copy_via_get = graph.get(entity_id)
+    entity_copy_via_get['is_copy'] = True
+    assert entity != entity_copy_via_get # the copy from get is not the original entity
+    entity_copy_via_find = graph.find(lambda x: True, [entity_id])[0]
+    entity_copy_via_find['is_copy'] = True
+    assert entity != entity_copy_via_find # the copy from find is not the original entity
     for i in range(0, 10):
         graph.insert({'num': i})
     assert len(graph.find()) == 11 # find returns all by default
@@ -193,11 +200,11 @@ def simple_graph():
     assert 'title' in updated_entity # updates to the entity took place
     assert 'name' not in updated_entity # removing entity values is possible
     assert 'id' in updated_entity and updated_entity['id'] == entity_id # id does not change
-    graph.delete(entity_id)
+    graph.remove(entity_id)
     assert len(graph.find()) == 10 # removing of an entity by id worked
-    graph.delete(graph.find(lambda x: 'num' in x and x['num'] == 5)[0])
+    graph.remove(graph.find(lambda x: 'num' in x and x['num'] == 5)[0])
     assert len(graph.find()) == 9 # removing of an entity by entity worked
-    graph.data.delete()
+    graph.clear()
 
 def file_db_tests():
     print('FileDB implementation')
@@ -212,12 +219,14 @@ def file_db_tests():
     data.db = entity
     data.save()
     data.db = {} # clear db to check if it loads correctly
-    data.load(test_file)
+    data.load()
     # what is saved is the same as what is retrieved
     assert entity == data.db
-    data.delete()
+    data.clear()
     # the file is successfully removed
     assert not os.path.exists(test_file)
+
+# == Test invocation =============================================================
 
 if __name__ == '__main__':
     test()

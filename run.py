@@ -5,6 +5,7 @@ import json
 
 import gr
 import gr_data
+import gr_types
 
 # == Main ========================================================================
 
@@ -18,11 +19,12 @@ def run_cmd(cmd):
         return False
     if cmd == '':
         print('The command is empty')
-    elif cmd in ['reset', 'ls', 'add', 'rem']:
+    elif cmd in ['clear', 'ls', 'add', 'rem']:
         db = gr_data.FileDB("data.json")
-        if cmd == 'reset':
+        if cmd == 'clear':
             graph = gr.Graph(db)
-            graph.reset()
+            graph.clear()
+            gr_types.init_type_system(graph)
             return True
         elif cmd == 'ls':
             data = gr.Graph(db)

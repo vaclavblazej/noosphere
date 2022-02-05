@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import copy
 import json
 import sys
 import os
@@ -32,22 +31,23 @@ class Graph:
 
     def __init__(self, data):
         self.data = data
+        self.data.load()
 
     #== Simple functions for elementary operations =============================
 
     # returns id when given either id or the whole node
     def get_id(self, entry_or_id):
-        if is_id(entry_or_id):
+        if self.data.is_id(entry_or_id):
             return entry_or_id
-        if 'id' in entry_or_id:
-            assert entry_or_id['id'] is not None
-            return entry_or_id['id']
+        res = self.data.get_id(entry_or_id)
+        if res is not None:
+            return res
         raise GrError('asked for an id of entry which is not an id not a node: {}'.format(entry_or_id))
 
     # given a query function returns all nodes which equal on the given structure
     def find(self, filter_lambda=None, ids=None):
         if ids is None:
-            entries = self.data.db['nodes'].values()
+            entries = self.data.all()
         else:
             entries = list(map(self.get, ids))
         if filter_lambda is None:
@@ -57,49 +57,38 @@ class Graph:
     # returns an updated version of the entry given entry or its id
     def get(self, entry_or_id):
         node_id = self.get_id(entry_or_id)
-        if not is_id(node_id):
+        if not self.data.is_id(node_id):
             raise GrError('node_id should be int, it is ' + str(type(node_id)))
-        nodes = self.data.db['nodes']
-        if str(node_id) in nodes:
-            return copy.deepcopy(nodes[str(node_id)])
-        else:
+        node = self.data.get(node_id)
+        if node is None:
             raise GrError('node with id ' + str(node_id) + ' could not be found')
+        return node
 
     # create a new entry and assign a new id to the node
     def insert(self, new_entry):
         assert new_entry is not None
-        assert 'id' not in new_entry
-        new_entry['id'] = self.data.db['last_node_id']
-        self.data.db['last_node_id'] = self.data.db['last_node_id'] + 1
-        self.update(new_entry)
+        self.valid_entry(new_entry)
+        self.data.insert(new_entry)
+        self.set_other_side_of_references({}, new_entry)
 
     # alter an existing entry
-    def update(self, new_entry):
-        assert new_entry is not None
-        self.valid_entry(new_entry)
-        try:
-            old_entry = self.get(new_entry)
-        except:
-            old_entry = {}
-        self.data.db['nodes'][str(self.get_id(new_entry))] = new_entry
-        self.set_other_side_of_references(old_entry, new_entry)
-        self.data.save()
+    def update(self, entry):
+        assert entry is not None
+        self.valid_entry(entry)
+        old_entry = self.get(entry)
+        self.data.update(entry)
+        self.set_other_side_of_references(old_entry, entry)
 
     # remove and existing entry
-    def delete(self, entry_or_id):
+    def remove(self, entry_or_id):
         rem_id = self.get_id(entry_or_id)
         rem_node = self.get(rem_id)
         self.set_other_side_of_references(rem_node, {})
-        nodes = self.data.db['nodes']
-        nodes.pop(str(rem_id))
-        self.data.db['nodes'] = nodes
-        self.data.save()
+        self.data.remove(rem_id)
 
     # remove all entities and start with a clear graph
-    def reset(self):
-        self.data.delete()
-        self.data.db = { 'nodes':{}, 'last_node_id':100, }
-        self.data.save()
+    def clear(self):
+        self.data.clear()
 
     #== data integrity checking ================================================
 
@@ -109,7 +98,6 @@ class Graph:
         entry_type = self.get(entry['type'])
         attrs_ids = unwrap(entry_type['attrs'])
         res_attrs = self.find(lambda x: 'type' in x and x['type']['id'] == entry_type['id'], attrs_ids)
-        print(unwrap(res_attrs))
         if len(res_attrs) == 0:
             return None
         return res_attrs[0]
@@ -200,14 +188,14 @@ class Graph:
                         if node[other_side_attr['name']] is not None:
                             pass # fixme - invalidate reference on the other side
                         node[other_side_attr['name']] = entry_ref
-                    self.data.db['nodes'][str(node_id)] = node
+                    self.data.update(node)
                 for node_id in removed_node_ids:
                     node = self.get(node_id)
                     if other_side_attr['array']:
                         node[other_side_attr['name']].remove(entry_ref)
                     else:
                         node[other_side_attr['name']] = None
-                    self.data.db['nodes'][str(node_id)] = node
+                    self.data.update(node)
 
     #== utility functions to be used by higher level functions =================
 
@@ -220,10 +208,6 @@ class Graph:
                 yield attr
 
 # == Utility functions ===========================================================
-
-# checks whether a thing is a valid id
-def is_id(identifier):
-    return isinstance(identifier, int)
 
 # functions ref, unwrap, and wrap are made for reference work
 # as each reference is coded as {'id': identificator} it is easier

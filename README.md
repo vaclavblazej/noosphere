@@ -5,6 +5,7 @@
 * features - system checks if it implements the given features
     * system says which primitive types it supports
 * namespaces - every node has namespace of 'where it belongs'
+* maybe extend primitive types - map coordinates, link, etc.
 * consider adding any type
 * consider making the type system more robust -- should those be defined as traits?
 
