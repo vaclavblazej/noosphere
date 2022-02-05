@@ -10,17 +10,19 @@ import gr_types
 # == Main ========================================================================
 
 def main():
-    while run_cmd(shift('Command')):
-        pass
+    db_file = shift('Graph Database File')
+    if db_file is not None:
+        while run_cmd(db_file, shift('Command')):
+            pass
 
-def run_cmd(cmd):
+def run_cmd(db_file, cmd):
     if cmd is None:
         print('exit')
         return False
     if cmd == '':
         print('The command is empty')
     elif cmd in ['clear', 'ls', 'add', 'rem']:
-        db = gr_data.FileDB("data.json")
+        db = gr_data.FileDB(db_file)
         if cmd == 'clear':
             graph = gr.Graph(db)
             graph.clear()

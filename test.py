@@ -75,7 +75,7 @@ def references():
     # check that everyone has a parent
     for i in range(1, 6):
         assert graph.find(lambda x: 'node_id' in x and x['node_id'] == i)[0]['parent'] is not None
-    #  graph.data.clear()
+    graph.clear()
 
 def type_integrity():
     print('Type integrity checking')
@@ -132,6 +132,7 @@ def type_integrity():
     insert_okay(graph, node)
     node['arrrefpar'] = [gr.ref(test_type)]
     insert_okay(graph, node)
+    graph.clear()
 
 def simple_integrity():
     print('Simple integrity checking')
@@ -169,6 +170,7 @@ def simple_integrity():
     insert_fails(graph, node) # may not contain invalid objects
     node['test'] = ['a', 2]
     insert_fails(graph, node) # arrays must be uniformly typed
+    graph.clear()
 
 def simple_graph():
     print('Graph elementary functionality')
