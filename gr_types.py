@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import gr
 import copy
 import json
 import sys
@@ -12,7 +13,7 @@ class Type(dict):
         self['name'] = name
         self['desc'] = desc
         global type_type
-        self['type'] = {'id': type_type['id']}
+        self['type'] = gr.ref(type_type)
         self['attrs'] = []
         self['rev_types'] = []
 
@@ -20,7 +21,7 @@ class Attr(dict):
     def __init__(self, name, dbtype, array=False):
         self['name'] = name
         global attr_type
-        self['type'] = {'id': attr_type['id']}
+        self['type'] = gr.ref(attr_type)
         self['array'] = array
         self['dbtype'] = dbtype
         if self['dbtype'] == 'ref':
@@ -38,15 +39,15 @@ def init_type_system(graph):
         'rev_types': [],
     }
     graph.insert(type_type) # now we have id, so create a two-side relation
-    type_type['type'] = {'id': type_type['id']}
-    type_type['rev_types'].append({'id': type_type['id']})
+    type_type['type'] = gr.ref(type_type)
+    type_type['rev_types'].append(gr.ref(type_type))
     graph.update(type_type)
 
     # prepare type for all nodes which represent attributes
     global attr_type
     attr_type = Type('Attr', 'Each node N which has "type" set to 100 defines a node structure. Every other node having "type" set to N should contain all parameters which are contained in attribute "attrs" in N. Each attribute contains "name" which says the attribyte description string, and "value" which says type of what can be saved to the attribute.')
     graph.insert(attr_type)
-    type_type['rev_types'].append({'id': attr_type['id']})
+    type_type['rev_types'].append(gr.ref(attr_type))
     graph.update(type_type)
 
     name_attr = Attr('name', 'str')
@@ -62,25 +63,25 @@ def init_type_system(graph):
 
     for attr in [name_attr, desc_attr, type_attr, attrs_attr, rev_types_attr, array_attr, dbtype_attr, target_attr, rev_attrs_attr]:
         graph.insert(attr)
-        attr_type[rev_types_attr['name']].append({'id': attr['id']})
+        attr_type[rev_types_attr['name']].append(gr.ref(attr))
     for attr in [name_attr, desc_attr, type_attr, attrs_attr, rev_types_attr]:
-        type_type['attrs'].append({'id': attr['id']})
-        attr[rev_attrs_attr['name']].append({'id': type_type['id']})
+        type_type['attrs'].append(gr.ref(attr))
+        attr[rev_attrs_attr['name']].append(gr.ref(type_type))
         graph.update(attr)
     for attr in [name_attr, type_attr, array_attr, dbtype_attr, target_attr, rev_attrs_attr]:
-        attr_type['attrs'].append({'id': attr['id']})
-        attr[rev_attrs_attr['name']].append({'id': attr_type['id']})
+        attr_type['attrs'].append(gr.ref(attr))
+        attr[rev_attrs_attr['name']].append(gr.ref(attr_type))
         graph.update(attr)
     graph.update(type_type)
     graph.update(attr_type)
 
-    target_attr['target'] = {'id': target_attr['id']}
+    target_attr['target'] = gr.ref(target_attr)
     graph.update(target_attr)
-    attrs_attr['target'] = {'id': rev_attrs_attr['id']}
-    rev_attrs_attr['target'] = {'id': attrs_attr['id']}
+    attrs_attr['target'] = gr.ref(rev_attrs_attr)
+    rev_attrs_attr['target'] = gr.ref(attrs_attr)
     graph.update(attrs_attr)
     graph.update(rev_attrs_attr)
-    type_attr['target'] = {'id': rev_types_attr['id']}
-    rev_types_attr['target'] = {'id': type_attr['id']}
+    type_attr['target'] = gr.ref(rev_types_attr)
+    rev_types_attr['target'] = gr.ref(type_attr)
     graph.update(type_attr)
     graph.update(rev_types_attr)

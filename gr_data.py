@@ -1,10 +1,38 @@
-
 import os
 import json
 import copy
+import random
 
 class DbError(RuntimeError):
     pass
+
+# saves id as an alphanumeric string values of given length
+class AlphaNumId:
+    def __init__(self, length):
+        self.length = length #todo utilize length
+    def load(self, saved_sata):
+        self.length = saved_sata['ids_len']
+    def save(self):
+        return {'ids_len': self.length}
+    def is_id(self, entry_id):
+        return isinstance(entry_id, str) and entry_id[0] == '!' and entry_id[1:].isalnum() and len(entry_id) == self.length+1;
+    def _next_alphanum(self):
+        rnd = random.randrange(0, 2*26+10)
+        if(rnd < 10):
+            return str(rnd)
+        rnd -= 10
+        if(rnd < 26):
+            return chr(ord('a') + rnd)
+        rnd -= 26
+        return chr(ord('A') + rnd)
+    def new_id(self, db):
+        while True:
+            new_id = ''
+            for i in range(self.length):
+                new_id += self._next_alphanum()
+            if(db.get(new_id) is None):
+                return '!' + new_id
+
 
 # saves id as a normal int
 class IntId:
@@ -32,7 +60,8 @@ class FileDB:
     def __init__(self, location):
         self.location = os.path.expanduser(location)
         self.db = None
-        self.ids = IntId()
+        self.orig_ids = AlphaNumId(6) # should not be a list because of ref, wrap, unwrap
+        self.ids = copy.deepcopy(self.orig_ids)
         self.load()
 
     def is_id(self, entry_id):
@@ -86,7 +115,7 @@ class FileDB:
             #  raise 
 
     def clear(self):
-        self.ids = IntId()
+        self.ids = copy.deepcopy(self.orig_ids)
         self.db = {}
         if os.path.exists(self.location):
             os.remove(self.location)

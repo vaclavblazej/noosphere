@@ -21,11 +21,6 @@ class GrError(RuntimeError):
 # Dbtype are standard things -- int, str, bool, etc.
 # Reference is *pointer* to any another node -- just dict with 'id' attribute.
 # References represent one-way edges of the graph.
-#
-# <<< TODO >>>
-# The typing is optional, but provieds a big boost to the functionality.
-# More precisely, references of nodes may be *joined* which makes the
-# references bi-directional so they update automatically.
 
 class Graph:
 
@@ -56,6 +51,7 @@ class Graph:
 
     # returns an updated version of the entry given entry or its id
     def get(self, entry_or_id):
+        assert entry_or_id is not None
         node_id = self.get_id(entry_or_id)
         if not self.data.is_id(node_id):
             raise GrError('node_id should be int, it is ' + str(type(node_id)))
@@ -227,11 +223,8 @@ def unwrap(reference):
     return reference['id']
 # given one or more ids construct respective references
 def wrap(reference):
-    try:
+    if(isinstance(reference, list)):
         return list(map(lambda x: {'id': x}, iter(reference)))
-    except TypeError:
-        pass
-    assert isinstance(reference, int)
     return {'id': reference}
 
 # given an entity and its attribute return its value as an array
