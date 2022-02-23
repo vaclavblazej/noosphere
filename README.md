@@ -2,20 +2,22 @@
 
 ## Next todos
 
-* consistency checking
+* consistency checking with versions in nodes - feature consistency
+* check that type contains the attributes - feature type_type
 * change types to traits so that any entity may have more than one
-* change parameters to ids
 * types may be inherited
 * consider how to make extensible primitive types - map coordinates, link, etc.
     * they should have a structure, as json is subset of strings
-* consider adding any type
+* consider adding 'any' type
 * versioning - entries are backed-up automatically and it is easy to retrieve entries from a given time
 * namespaces - every node has namespace of 'where it belongs'
-* features - system checks if it implements the given features
-    * system says which primitive types it supports
 
 ## Done
 
+* features - system checks if it implements the given features
+* split type system into attr_type and type_type
+* change parameters to ids
+* change ids from int to alphanumeric
 * finish type integrity checking
 
 # Possible uses
