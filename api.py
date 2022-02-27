@@ -35,8 +35,10 @@ def find():
     print(res)
     return str(res) + '\n', 200
 
+# old:  @app.route('/node/<int:entity_id>/', methods = ['GET'])
+
 # curl -X GET http://127.0.0.1:5000/node/101/
-@app.route('/node/<int:entity_id>/', methods = ['GET'])
+@app.route('/node/<entity_id>/', methods = ['GET'])
 def get(entity_id):
     graph = gr.Graph(gr_data.FileDB('web.json'))
     return graph.get(entity_id), 200
