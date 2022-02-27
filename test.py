@@ -49,7 +49,7 @@ def references():
     tree_node_type = gr_types.new_type(graph, 'Test')
     graph.insert(tree_node_type)
     # the type sets itself correctly
-    assert unwrap(tree_node_type[type_feat.get('type')]) == type_feat.get('type_type')
+    assert unwrap(tree_node_type[type_feat.get('type')])[0] == type_feat.get('type_type')
     # the information propagates to the other side of the relation
     children_attr = gr_types.new_attr(graph, 'children', 'ref', True)
     graph.insert(children_attr)
@@ -69,7 +69,7 @@ def references():
 
     # now, build a tree
     for node_id in range(0, 6):
-        graph.insert({type_feat.get('type'): gr.ref(tree_node_type), node_id_attr_id: node_id, unwrap(children_attr): [], unwrap(parent_attr): None})
+        graph.insert({type_feat.get('type'): [gr.ref(tree_node_type)], node_id_attr_id: node_id, unwrap(children_attr): [], unwrap(parent_attr): None})
     for (to, fr) in enumerate([0, 1, 1, 1, 3]): # parent list for nodes 1..
         to += 1
         fr_node = graph.find(lambda x: node_id_attr_id in x and x[node_id_attr_id] == fr)[0]
@@ -111,7 +111,7 @@ def type_integrity():
         test_type[type_type_feat.get('attrs')].append(gr.ref(attr))
         id_map[attr[type_type_feat.get('name')]] = unwrap(attr)
     graph.update(test_type)
-    node = {type_type_feat.get('type'): gr.ref(test_type)}
+    node = {type_type_feat.get('type'): [gr.ref(test_type)]}
     # okay simple attributes
     node[id_map['intpar']] = 'test text'
     insert_fails(graph, node) # wrong type

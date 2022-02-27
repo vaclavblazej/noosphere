@@ -8,7 +8,7 @@ def new_type(graph, name):
     attr_type_feat = graph.feature('attr_type')
     res = {}
     res[type_type_feat.get('name')] = name
-    res[type_type_feat.get('type')] = type_type_feat.ref('type_type')
+    res[type_type_feat.get('type')] = [type_type_feat.ref('type_type')]
     res[type_type_feat.get('attrs')] = []
     return res
 
@@ -17,7 +17,7 @@ def new_attr(graph, name, dbtype, array=False):
     attr_type_feat = graph.feature('attr_type')
     res = {}
     res[type_type_feat.get('name')] = name
-    res[type_type_feat.get('type')] = type_type_feat.ref('attr_type')
+    res[type_type_feat.get('type')] = [type_type_feat.ref('attr_type')]
     res[attr_type_feat.get('array')] = array
     res[attr_type_feat.get('dbtype')] = dbtype
     return res
@@ -39,32 +39,33 @@ def init_type_system(graph):
     type_type = {}
     attr_type = {}
     name_attr = {}
-    type_attr = {}
+    types_attr = {}
     attrs_attr = {}
     array_attr = {}
     dbtype_attr = {}
-    for entry in [type_type, attr_type, name_attr, type_attr, attrs_attr, array_attr, dbtype_attr]:
+    for entry in [type_type, attr_type, name_attr, types_attr, attrs_attr, array_attr, dbtype_attr]:
         graph.insert(entry) # obtain ids
 
     type_type[unwrap(name_attr)] = 'Type'
-    type_type[unwrap(type_attr)] = ref(type_type)
-    type_type[unwrap(attrs_attr)] = [ref(name_attr), ref(type_attr), ref(attrs_attr)]
+    type_type[unwrap(types_attr)] = ref(type_type)
+    type_type[unwrap(attrs_attr)] = [ref(name_attr), ref(types_attr), ref(attrs_attr)]
     graph.update(type_type)
 
     attr_type[unwrap(name_attr)] = 'Attr'
-    attr_type[unwrap(type_attr)] = ref(type_type)
-    attr_type[unwrap(attrs_attr)] = [ref(name_attr), ref(type_attr), ref(array_attr), ref(dbtype_attr)]
+    attr_type[unwrap(types_attr)] = ref(type_type)
+    attr_type[unwrap(attrs_attr)] = [ref(name_attr), ref(types_attr), ref(array_attr), ref(dbtype_attr)]
     graph.update(attr_type)
 
-    for entry in [name_attr, type_attr, attrs_attr, array_attr, dbtype_attr]:
-        entry[unwrap(type_attr)] = ref(attr_type)
+    for entry in [name_attr, types_attr, attrs_attr, array_attr, dbtype_attr]:
+        entry[unwrap(types_attr)] = ref(attr_type)
         entry[unwrap(array_attr)] = False
         graph.update(entry)
 
     name_attr[unwrap(name_attr)] = 'name'
     name_attr[unwrap(dbtype_attr)] = 'str'
-    type_attr[unwrap(name_attr)] = 'type'
-    type_attr[unwrap(dbtype_attr)] = 'ref'
+    types_attr[unwrap(name_attr)] = 'type'
+    types_attr[unwrap(dbtype_attr)] = 'ref'
+    types_attr[unwrap(array_attr)] = True
     attrs_attr[unwrap(name_attr)] = 'attrs'
     attrs_attr[unwrap(dbtype_attr)] = 'ref'
     attrs_attr[unwrap(array_attr)] = True
@@ -72,14 +73,14 @@ def init_type_system(graph):
     array_attr[unwrap(dbtype_attr)] = 'bool'
     dbtype_attr[unwrap(name_attr)] = 'dbtype'
     dbtype_attr[unwrap(dbtype_attr)] = 'str'
-    for entry in [name_attr, type_attr, attrs_attr, array_attr, dbtype_attr]:
+    for entry in [name_attr, types_attr, attrs_attr, array_attr, dbtype_attr]:
         graph.update(entry)
 
     loader = graph.feature('loader', True)
     # todo fixup loader scope, name, and version to be valid attribute types
     #  loader_entry = graph.get(loader.id())
     #  loader_scope = graph.get(loader_entry['scope'])
-    #  loader_scope[type_attr]
+    #  loader_scope[types_attr]
     #  loader_name = { 'name': 'name' }
     #  loader_version = { 'name': 'version' }
     attr_type_loader = {
@@ -96,7 +97,7 @@ def init_type_system(graph):
         loader.get('version'): '0.1',
         'type_type': ref(type_type),
         'attr_type': ref(attr_type),
-        'type': ref(type_attr),
+        'type': ref(types_attr),
         'name': ref(name_attr),
         'attrs': ref(attrs_attr),
     }
