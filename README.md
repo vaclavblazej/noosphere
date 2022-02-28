@@ -1,42 +1,53 @@
-# Todos
+*A way to work with data without worying about details.*
 
-## Next todos
+Note that this project is still [work in progress](./docs/work.md); help is appreciated.
 
-* change types so that any entity may have more than one
-* write the documentation and make it more structured
-* check that type contains the attributes - feature type_type
-* consistency checking with versions in nodes - feature consistency
-* types may be composed via their parameter super[]
-* consider how to make extensible primitive types - map coordinates, link, etc.
-    * they should have a structure, as json is subset of strings
-* consider adding 'any' type which is parent of all types
-* versioning - entries are backed-up automatically and it is easy to retrieve entries from a given time
-* namespaces - every node has namespace of 'where it belongs'
+# Graph data storage
 
-## Done
+This projects aims to make an universal system to work with data.
 
-* split type system into attr_type and type_type
-* features - system checks if it implements given feature
-* change parameters to ids
-* change ids from int to alphanumeric
-* finish type integrity checking
+Concisely said, the data is presented as flat json objects which represent entries.
+Attributes can hold primitives, arrays, or references to other entries.
 
-# Current features
+```json
+{
+    "id": "!QS48j5",
+    "name": "Entry example",
+    "version": "0.1",
+    "few_primes": [2, 3, 5, 7, 11, 13, 17, 19],
+    "reference": { "id": "!0cGTHT" },
+    "more_references": [
+        { "id": "!f3UGJA" },
+        { "id": "!4ImlZA" },
+        { "id": "!bWda7k" }
+    ]
+}
+```
 
-todo
+You may work with the data using any compatible system.
+One compatible rudimentary system is available within this repository.
 
-# Possible uses
+The main difference from classical data storages (files or databases) is that this is an intermediate format.
+Its implementation may use files or databases to implement the data storage but working with it does not depend on the storage.
 
-* writing logical explanatory texts
-    * node based - each chunk of text is a node
-    * groupable nodes - nodes can be grouped into a node which can contain linear order over them (tree of nodes)
-    * linkable nodes - nodes cacn refer to each other
-    * checkable of consistency - one can write programical checks of consistency over the links, etc.
-* todo list
-    * nodes with todos
-    * can be listed
-    * can be marked as done
-    * with deadline
-* data structures
-    * implementation of *fast* structures within the structure
-* analysis of proofs
+The format is general enough that it can convey information to the storage system.
+This allows additional functionality to be added to the system via modules.
+The data itself configure which modules are activated and their settings.
+
+## Modules
+
+Modules of this interpreter may be activated by the read entries.
+Root loader is saved in an entry with id `!0` and loaders of modules which should be activated are saved in its `features` attribute.
+
+See a separate [Modules documentation](./docs/modules.md).
+
+## Projects
+
+There are several small projects which present how to use this system.
+They are in a separate repository [gr-web](https://github.com/vaclavblazej/gr-web) and use the `api.py` rest interface implementation.
+
+# Idea
+
+The idea is more important than its implementation.
+It is expected that these concepts will be reimplemented by other authors or groups.
+Other implementations should have a compatibility layer so that core features or core-compatible features are runnable.

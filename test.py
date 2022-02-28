@@ -13,11 +13,12 @@ test_file = '.test_tmp.json'
 
 def test():
     print('testing')
-    file_db_tests()
-    simple_graph()
-    simple_integrity()
-    type_integrity()
-    references()
+    test_file_db()
+    test_basic_functionality()
+    test_simple_integrity()
+    test_attribute_type_system()
+    test_type_system()
+    test_link_system()
 
 # == Utility functions ===========================================================
 
@@ -34,29 +35,18 @@ def insert_fails(graph, node):
 
 # == Test functions ==============================================================
 
-def references():
-    print('Operations with references')
+def test_link_system():
+    print('Operations with link system')
     graph = gr.Graph(gr_data.MemoryDB())
     graph.clear()
-    gr_types.init_type_system(graph)
+    gr_types.init_attribute_id_system(graph)
     gr_types.init_link_sysem(graph)
-    type_feat = graph.feature('type_type')
-    attr_feat = graph.feature('attr_type')
+    attr_feat = graph.feature('attribute_id')
     link_feat = graph.feature('link')
-    #  load_feat = graph.feature('loader')
-    #  for node in graph.find():
-        #  assert node[type_feat.get('type')] is not None or node[load_feat.get('name')] is not None
-    tree_node_type = gr_types.new_type(graph, 'Test')
-    graph.insert(tree_node_type)
-    # the type sets itself correctly
-    assert unwrap(tree_node_type[type_feat.get('type')])[0] == type_feat.get('type_type')
-    # the information propagates to the other side of the relation
     children_attr = gr_types.new_attr(graph, 'children', 'ref', True)
     graph.insert(children_attr)
     parent_attr = gr_types.new_attr(graph, 'parent', 'ref')
     graph.insert(parent_attr)
-    tree_node_type[type_feat.get('attrs')] = gr.ref([children_attr, parent_attr])
-    graph.update(tree_node_type)
     children_attr = graph.get(children_attr)
     children_attr[link_feat.get('target')] = gr.ref(parent_attr)
     graph.update(children_attr)
@@ -64,12 +54,10 @@ def references():
     node_id_attr = gr_types.new_attr(graph, 'node_id', 'int')
     graph.insert(node_id_attr)
     node_id_attr_id = unwrap(node_id_attr)
-    # custom types propagate targets
     assert unwrap(parent_attr[link_feat.get('target')]) == unwrap(children_attr)
-
     # now, build a tree
     for node_id in range(0, 6):
-        graph.insert({type_feat.get('type'): [gr.ref(tree_node_type)], node_id_attr_id: node_id, unwrap(children_attr): [], unwrap(parent_attr): None})
+        graph.insert({node_id_attr_id: node_id, unwrap(children_attr): [], unwrap(parent_attr): None})
     for (to, fr) in enumerate([0, 1, 1, 1, 3]): # parent list for nodes 1..
         to += 1
         fr_node = graph.find(lambda x: node_id_attr_id in x and x[node_id_attr_id] == fr)[0]
@@ -84,12 +72,19 @@ def references():
         assert graph.find(lambda x: node_id_attr_id in x and x[node_id_attr_id] == i)[0][unwrap(parent_attr)] is not None
     graph.clear()
 
-def type_integrity():
-    print('Type integrity checking')
+def test_type_system():
+    print('Type system integrity checking')
     graph = gr.Graph(gr_data.MemoryDB())
     graph.clear()
+    gr_types.init_attribute_id_system(graph)
     gr_types.init_type_system(graph)
-    test_type = gr_types.new_type(graph, 'Test Type')
+
+def test_attribute_type_system():
+    print('Attribute type integrity checking')
+    graph = gr.Graph(gr_data.MemoryDB())
+    graph.clear()
+    gr_types.init_attribute_id_system(graph)
+    test_type = {}
     graph.insert(test_type)
     attrs = [
         gr_types.new_attr(graph, 'intpar', 'int', False),
@@ -104,14 +99,12 @@ def type_integrity():
         gr_types.new_attr(graph, 'arrrefpar', 'ref', True),
     ]
     id_map = dict()
-    attr_type = graph.feature('attr_type')
-    type_type_feat = graph.feature('type_type')
+    attr_type = graph.feature('attribute_id')
     for attr in attrs:
         graph.insert(attr)
-        test_type[type_type_feat.get('attrs')].append(gr.ref(attr))
-        id_map[attr[type_type_feat.get('name')]] = unwrap(attr)
+        id_map[attr[attr_type.get('name')]] = unwrap(attr)
     graph.update(test_type)
-    node = {type_type_feat.get('type'): [gr.ref(test_type)]}
+    node = {}
     # okay simple attributes
     node[id_map['intpar']] = 'test text'
     insert_fails(graph, node) # wrong type
@@ -145,7 +138,7 @@ def type_integrity():
     insert_okay(graph, node)
     graph.clear()
 
-def simple_integrity():
+def test_simple_integrity():
     print('Simple integrity checking')
     graph = gr.Graph(gr_data.MemoryDB())
     graph.clear()
@@ -183,7 +176,7 @@ def simple_integrity():
     insert_fails(graph, node) # arrays must be uniformly typed
     graph.clear()
 
-def simple_graph():
+def test_basic_functionality():
     print('Graph elementary functionality')
     graph = gr.Graph(gr_data.MemoryDB())
     graph.clear()
@@ -217,7 +210,7 @@ def simple_graph():
     assert len(graph.find()) == size-2 # removing of an entity by entity worked
     graph.clear()
 
-def file_db_tests():
+def test_file_db():
     print('FileDB implementation')
     data = gr_data.FileDB(test_file)
     entity = {

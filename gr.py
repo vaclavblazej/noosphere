@@ -170,7 +170,7 @@ class Graph:
     #== data integrity checking ================================================
 
     def valid_entry(self, entry):
-        attr_type_feat = self.feature('attr_type')
+        attr_type_feat = self.feature('attribute_id')
         for attr_id in entry.keys():
             if attr_type_feat:
                 if attr_id == attr_type_feat.get('dbtype'):
@@ -186,7 +186,8 @@ class Graph:
                         self.valid_attribute(entry[attr_id], attr_type[dbtype], attr_type[array])
                         continue
                 elif attr_id != 'id' and not ('id' in entry and entry['id'] == '!0'):
-                    name_id = self.feature('loader', True).get('name')
+                    loader = self.feature('loader', True)
+                    name_id = loader.get('name')
                     if name_id not in entry: # means that this is not a loader
                         warn('although attribute typing is enabled an entry was inserted with plain attribute name "{}"'.format(attr_id))
                         warn('entry: {}'.format(entry))
@@ -235,7 +236,7 @@ class Graph:
 
     def set_other_side_of_references(self, old_entry, new_entry):
         # todo fixme - this function was originally written to fetch type from the entry type, go through its attributes and set the other side depending on what it targets; now we need no entry type; simply if attribute name is an id of a valid attribute with target property of the link feature then we may set the other side of the link
-        attr_feat = self.feature('attr_type')
+        attr_feat = self.feature('attribute_id')
         links_feat = self.feature('link')
         if attr_feat and links_feat:
             old_attrs_ids = unwrap(self._relation_attributes_iterator(old_entry))
@@ -278,7 +279,7 @@ class Graph:
     #== utility functions for link module ======================================
 
     def _relation_attributes_iterator(self, entity):
-        attr_type_feat = self.feature('attr_type')
+        attr_type_feat = self.feature('attribute_id')
         if attr_type_feat:
             for attr_id in entity.keys():
                 if self.data.is_id(attr_id):

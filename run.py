@@ -26,7 +26,9 @@ def run_cmd(db_file, cmd):
         if cmd == 'clear':
             graph = gr.Graph(db)
             graph.clear()
+            gr_types.init_attribute_id_system(graph)
             gr_types.init_type_system(graph)
+            gr_types.init_link_sysem(graph)
             return True
         elif cmd == 'ls':
             data = gr.Graph(db)

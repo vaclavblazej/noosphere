@@ -22,7 +22,9 @@ import gr_types
 def clear():
     graph = gr.Graph(gr_data.FileDB('web.json'))
     graph.clear()
+    gr_types.init_attribute_id_system(graph)
     gr_types.init_type_system(graph)
+    gr_types.init_link_sysem(graph)
     return '', 200
 
 # curl -X GET http://127.0.0.1:5000/node/find/ -H "Content-Type: application/json" --data '{"query": "lambda x:True"}'
