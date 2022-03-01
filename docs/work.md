@@ -11,7 +11,7 @@
 * consider adding 'any' type which is parent of all types
 * namespaces - every node has namespace of 'where it belongs'
 
-## Done in 0.1
+## Done in 0.1 -- currently worked on
 
 * change types so that any entity may have more than one
 * split type system into attr_type and type_type

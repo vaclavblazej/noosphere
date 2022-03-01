@@ -34,6 +34,8 @@ The format is general enough that it can convey information to the storage syste
 This allows additional functionality to be added to the system via modules.
 The data itself configure which modules are activated and their settings.
 
+See [in-depth explanation of this system](./docs/system.md).
+
 ## Modules
 
 Modules of this interpreter may be activated by the read entries.
@@ -45,9 +47,3 @@ See a separate [Modules documentation](./docs/modules.md).
 
 There are several small projects which present how to use this system.
 They are in a separate repository [gr-web](https://github.com/vaclavblazej/gr-web) and use the `api.py` rest interface implementation.
-
-# Idea
-
-The idea is more important than its implementation.
-It is expected that these concepts will be reimplemented by other authors or groups.
-Other implementations should have a compatibility layer so that core features or core-compatible features are runnable.
