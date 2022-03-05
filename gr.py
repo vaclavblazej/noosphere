@@ -7,7 +7,7 @@ import os
 class GrError(RuntimeError):
     pass
 
-class Feature:
+class Module:
     def __init__(self, data):
         self.data = data
     def get(self, name):
@@ -17,8 +17,8 @@ class Feature:
     def id(self):
         return self.data['id']
 
-def new_feature(graph, scope, name, version):
-    loader = graph.feature('loader', True)
+def new_module(graph, scope, name, version):
+    loader = graph.module('loader', True)
     link_loader = {
         loader.get('scope'): scope,
         loader.get('name'): name,
@@ -28,19 +28,6 @@ def new_feature(graph, scope, name, version):
 
 def warn(text):
     print('>>> WARNING <<<', text)
-
-# == Data Keeping Structure ======================================================
-# This structure
-# * keeps elementary datapoints: nodes and edges
-# * has methods to work with them
-#
-# It returns *copy* of the data and you need to save it to take effect. This is
-# mainly done for internal reasons as it is hard to know what changed otherwise.
-# Each *node* has an internal 'id' which is used to identify it in the database.
-# Nodes have *flat* structure. Each attribute may be either dbtype or reference.
-# Dbtype are standard things -- int, str, bool, etc.
-# Reference is *pointer* to any another node -- just dict with 'id' attribute.
-# References represent one-way edges of the graph.
 
 class Graph:
 
@@ -67,27 +54,27 @@ class Graph:
             'version': ref(loader_version),
         }
         self.data.insert(loader)
-        # loader must be added here as add_loader uses it
-        root_loader = {'id':'!0','features':[ref(loader)]}
+        # loader must be added here as add_module uses it
+        root_loader = {'id':'!0','modules':[ref(loader)]}
         self.data.update(root_loader)
-        self.features = {'loader': loader}
+        self.modules = {'loader': loader}
 
-    def add_loader(self, node):
+    def add_module(self, node):
         root_loader = self._get_root_loader()
-        if root_loader is None or 'features' not in root_loader:
+        if root_loader is None or 'modules' not in root_loader:
             raise GrError('Root loader is not initialized.')
-        root_loader['features'].append(ref(node))
+        root_loader['modules'].append(ref(node))
         self.update(root_loader)
         self._run_loaders()
 
-    def feature(self, name, compulsory=False):
-        if name is not None and name in self.features:
-            res_feat = self.get(self.features[name])
+    def module(self, name, compulsory=False):
+        if name is not None and name in self.modules:
+            res_feat = self.get(self.modules[name])
             if res_feat:
-                return Feature(res_feat)
+                return Module(res_feat)
         if not compulsory:
             return None
-        raise GrError('unable to find "{}" feature in {}'.format(name, self.features))
+        raise GrError('unable to find "{}" module in {}'.format(name, self.modules))
 
     def _get_root_loader(self):
         try:
@@ -96,17 +83,17 @@ class Graph:
             return None
 
     def _run_loaders(self):
-        new_features = {}
+        new_modules = {}
         root_loader = self._get_root_loader()
         if root_loader is not None:
-            assert 'features' in root_loader
-            loader = self.feature('loader', True)
-            for feature in root_loader['features']:
-                feature = self.get(feature)
+            assert 'modules' in root_loader
+            loader = self.module('loader', True)
+            for module in root_loader['modules']:
+                module = self.get(module)
                 name_id = loader.get('name')
-                if name_id in feature:
-                    new_features[feature[name_id]] = feature
-        self.features = new_features
+                if name_id in module:
+                    new_modules[module[name_id]] = module
+        self.modules = new_modules
 
     #== Simple functions for elementary operations =============================
 
@@ -170,7 +157,7 @@ class Graph:
     #== data integrity checking ================================================
 
     def valid_entry(self, entry):
-        attr_type_feat = self.feature('attribute_id')
+        attr_type_feat = self.module('attribute_id')
         for attr_id in entry.keys():
             if attr_type_feat:
                 if attr_id == attr_type_feat.get('dbtype'):
@@ -186,7 +173,7 @@ class Graph:
                         self.valid_attribute(entry[attr_id], attr_type[dbtype], attr_type[array])
                         continue
                 elif attr_id != 'id' and not ('id' in entry and entry['id'] == '!0'):
-                    loader = self.feature('loader', True)
+                    loader = self.module('loader', True)
                     name_id = loader.get('name')
                     if name_id not in entry: # means that this is not a loader
                         warn('although attribute typing is enabled an entry was inserted with plain attribute name "{}"'.format(attr_id))
@@ -198,9 +185,9 @@ class Graph:
         is_array = (attr_type == 'arr')
         if assumed_array is not None:
             if is_array and not assumed_array:
-                raise GrError('type is array but it should not be')
+                raise GrError('type is array but it should not be {}'.format(attr_value))
             if not is_array and assumed_array:
-                raise GrError('type is not array but it should be')
+                raise GrError('type is not array but it should be {}'.format(attr_value))
         if is_array:
             types = list(filter(lambda x: x is not None, map(self.retrieve_value_type, attr_value)))
             for val in types:
@@ -235,9 +222,9 @@ class Graph:
     #== double-sided references ================================================
 
     def set_other_side_of_references(self, old_entry, new_entry):
-        # todo fixme - this function was originally written to fetch type from the entry type, go through its attributes and set the other side depending on what it targets; now we need no entry type; simply if attribute name is an id of a valid attribute with target property of the link feature then we may set the other side of the link
-        attr_feat = self.feature('attribute_id')
-        links_feat = self.feature('link')
+        # todo fixme - this function was originally written to fetch type from the entry type, go through its attributes and set the other side depending on what it targets; now we need no entry type; simply if attribute name is an id of a valid attribute with target property of the link module then we may set the other side of the link
+        attr_feat = self.module('attribute_id')
+        links_feat = self.module('link')
         if attr_feat and links_feat:
             old_attrs_ids = unwrap(self._relation_attributes_iterator(old_entry))
             new_attrs_ids = unwrap(self._relation_attributes_iterator(new_entry))
@@ -279,7 +266,7 @@ class Graph:
     #== utility functions for link module ======================================
 
     def _relation_attributes_iterator(self, entity):
-        attr_type_feat = self.feature('attribute_id')
+        attr_type_feat = self.module('attribute_id')
         if attr_type_feat:
             for attr_id in entity.keys():
                 if self.data.is_id(attr_id):

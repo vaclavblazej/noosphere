@@ -41,8 +41,8 @@ def test_link_system():
     graph.clear()
     gr_types.init_attribute_id_system(graph)
     gr_types.init_link_sysem(graph)
-    attr_feat = graph.feature('attribute_id')
-    link_feat = graph.feature('link')
+    attr_feat = graph.module('attribute_id')
+    link_feat = graph.module('link')
     children_attr = gr_types.new_attr(graph, 'children', 'ref', True)
     graph.insert(children_attr)
     parent_attr = gr_types.new_attr(graph, 'parent', 'ref')
@@ -99,7 +99,7 @@ def test_attribute_type_system():
         gr_types.new_attr(graph, 'arrrefpar', 'ref', True),
     ]
     id_map = dict()
-    attr_type = graph.feature('attribute_id')
+    attr_type = graph.module('attribute_id')
     for attr in attrs:
         graph.insert(attr)
         id_map[attr[attr_type.get('name')]] = unwrap(attr)

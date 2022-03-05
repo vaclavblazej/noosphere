@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from gr import ref, unwrap, wrap, new_feature
+from gr import ref, unwrap, wrap, new_module
 import copy
 
 def new_type(graph, name):
-    type_type_feat = graph.feature('type')
-    attr_type_feat = graph.feature('attribute_id')
+    type_type_feat = graph.module('type')
+    attr_type_feat = graph.module('attribute_id')
     res = {}
     res[type_type_feat.get('name')] = name
     res[type_type_feat.get('type')] = [type_type_feat.ref('type_type')]
@@ -13,12 +13,12 @@ def new_type(graph, name):
     return res
 
 def new_attr(graph, name, dbtype, array=False):
-    type_type_feat = graph.feature('type')
-    attr_type_feat = graph.feature('attribute_id')
+    type_type_feat = graph.module('type')
+    attr_type_feat = graph.module('attribute_id')
     res = {}
     res[attr_type_feat.get('name')] = name
     if type_type_feat:
-        res[type_type_feat.get('type')] = [type_type_feat.ref('attribute_id')]
+        res[type_type_feat.get('type')] = [type_type_feat.ref('attr_type')]
     res[attr_type_feat.get('array')] = array
     res[attr_type_feat.get('dbtype')] = dbtype
     return res
@@ -29,13 +29,13 @@ def init_link_sysem(graph):
     target_attr[unwrap(target_attr)] = ref(target_attr)
     graph.update(target_attr)
 
-    link_loader = new_feature(graph, 'blazeva1', 'link', '0.1')
+    link_loader = new_module(graph, 'blazeva1', 'link', '0.1')
     link_loader['target'] = ref(target_attr)
     graph.insert(link_loader)
-    graph.add_loader(link_loader)
+    graph.add_module(link_loader)
 
 def init_type_system(graph):
-    attr_id_feat = graph.feature('attribute_id', True)
+    attr_id_feat = graph.module('attribute_id', True)
     attr_name_attr = graph.get(attr_id_feat.get('name'))
     attr_dbtype_attr = graph.get(attr_id_feat.get('dbtype'))
     attr_array_attr = graph.get(attr_id_feat.get('array'))
@@ -43,26 +43,26 @@ def init_type_system(graph):
     type_type = {}
     attr_type = {}
     name_attr = new_attr(graph, 'name', 'str')
-    types_attr = new_attr(graph, 'type', 'ref')
+    types_attr = new_attr(graph, 'type', 'ref', True)
     attrs_attr = new_attr(graph, 'attrs', 'ref', True)
     for entry in [type_type, attr_type, name_attr, types_attr, attrs_attr]:
         graph.insert(entry) # obtain ids
 
     type_type[unwrap(name_attr)] = 'Type'
-    type_type[unwrap(types_attr)] = ref(type_type)
+    type_type[unwrap(types_attr)] = [ref(type_type)]
     type_type[unwrap(attrs_attr)] = [ref(name_attr), ref(types_attr), ref(attrs_attr)]
     graph.update(type_type)
 
     attr_type[unwrap(name_attr)] = 'Attr'
-    attr_type[unwrap(types_attr)] = ref(type_type)
+    attr_type[unwrap(types_attr)] = [ref(type_type)]
     attr_type[unwrap(attrs_attr)] = [ref(name_attr), ref(types_attr)]
     graph.update(attr_type)
 
     for entry in [name_attr, types_attr, attrs_attr, attr_dbtype_attr, attr_name_attr, attr_array_attr]:
-        entry[unwrap(types_attr)] = ref(attr_type)
+        entry[unwrap(types_attr)] = [ref(attr_type)]
         graph.update(entry)
 
-    loader = graph.feature('loader', True)
+    loader = graph.module('loader', True)
     #  loader_scope = graph.get(loader.get('scope'))
     #  loader_scope[unwrap(type_type)] = False
     #  graph.update(loader_scope)
@@ -90,7 +90,7 @@ def init_type_system(graph):
         'attrs': ref(attrs_attr),
     }
     graph.insert(type_type_loader)
-    graph.add_loader(type_type_loader)
+    graph.add_module(type_type_loader)
 
 def init_attribute_id_system(graph):
     name_attr = {}
@@ -116,7 +116,7 @@ def init_attribute_id_system(graph):
     for entry in [name_attr, attrs_attr, array_attr, dbtype_attr]:
         graph.update(entry)
 
-    loader = graph.feature('loader', True)
+    loader = graph.module('loader', True)
     loader_scope = graph.get(loader.get('scope'))
     loader_scope[unwrap(dbtype_attr)] = 'str'
     loader_scope[unwrap(array_attr)] = False
@@ -139,4 +139,4 @@ def init_attribute_id_system(graph):
         'array': ref(array_attr),
     }
     graph.insert(attr_type_loader)
-    graph.add_loader(attr_type_loader)
+    graph.add_module(attr_type_loader)

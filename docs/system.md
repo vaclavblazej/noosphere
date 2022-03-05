@@ -71,11 +71,11 @@ This promotes locality of use of the fetched values, which is a good practice by
 
 # Discussion
 
-## How should the features be implemented
+## How should the modules be implemented
 
-It is quite unclear how to imeplement features and their loading.
+It is quite unclear how to imeplement modules and their loading.
 It should be very generic but at the same time ... functional.
-Also, the system itself needs to know which features it supports and if the data is compatible.
+Also, the system itself needs to know which modules it supports and if the data is compatible.
 To tackle this, it seems that *loader* and *compatibility* modules need to arise.
 
 ## Transactions

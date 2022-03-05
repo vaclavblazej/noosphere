@@ -2,6 +2,10 @@
 
 Note that this project is still [work in progress](./docs/work.md); help is appreciated.
 
+# todo
+
+* database of problems and solutions
+
 # Graph data storage
 
 This projects aims to make an universal system to work with data.
@@ -39,9 +43,9 @@ See [in-depth explanation of this system](./docs/system.md).
 ## Modules
 
 Modules of this interpreter may be activated by the read entries.
-Root loader is saved in an entry with id `!0` and loaders of modules which should be activated are saved in its `features` attribute.
+New module may be added by `add_module`.
 
-See a separate [Modules documentation](./docs/modules.md).
+See the [Modules documentation](./docs/modules.md).
 
 ## Projects
 

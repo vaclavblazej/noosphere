@@ -3,8 +3,8 @@
 ## Next todos
 
 * write basic documentation and make it more structured
-* check that type contains the attributes - feature type_type
-* consistency checking with versions in nodes - feature consistency
+* check that type contains the attributes - type_type module
+* consistency checking with versions in nodes - consistency module
 * types may be composed via their parameter super[]
 * consider how to make extensible primitive types - map coordinates, link, etc.
     * they should have a structure, as json is subset of strings
@@ -15,7 +15,7 @@
 
 * change types so that any entity may have more than one
 * split type system into attr_type and type_type
-* features - system checks if it implements given feature
+* modules - system checks if it implements given module
 * change parameters to ids
 * change ids from int to alphanumeric
 * finish type integrity checking
