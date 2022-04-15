@@ -4,10 +4,13 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
+# configure cors
 @app.after_request
 def after_request(response):
     header = response.headers
-    header['Access-Control-Allow-Origin'] = '*'
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add('Access-Control-Allow-Headers', "*")
+    response.headers.add('Access-Control-Allow-Methods', "*")
     return response
 
 import gr
@@ -34,7 +37,7 @@ def find():
     body = request.get_json()
     query_lambda = eval(body['query'])
     res = graph.find(query_lambda)
-    print(res)
+    #  print(res)
     return str(res) + '\n', 200
 
 # old:  @app.route('/node/<int:entity_id>/', methods = ['GET'])
@@ -45,7 +48,7 @@ def get(entity_id):
     graph = gr.Graph(gr_data.FileDB('web.json'))
     return graph.get(entity_id), 200
 
-@app.route('/node/', methods = ['POST', 'PUT'])
+@app.route('/node/', methods = ['POST', 'PUT', 'OPTIONS'])
 def update_insert():
 # curl -X POST http://127.0.0.1:5000/node/ -H "Content-Type: application/json" --data '{"asdf": 111}'
     if request.method == 'POST':

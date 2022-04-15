@@ -34,6 +34,7 @@ class Graph:
     def __init__(self, data):
         self.data = data
         self.data.load()
+        self._run_loaders()
 
     #== Root loader functions ==================================================
 
@@ -85,6 +86,8 @@ class Graph:
     def _run_loaders(self):
         new_modules = {}
         root_loader = self._get_root_loader()
+        if not hasattr(self, 'modules'):
+            self.modules = {'loader': root_loader['modules'][0]}
         if root_loader is not None:
             assert 'modules' in root_loader
             loader = self.module('loader', True)
