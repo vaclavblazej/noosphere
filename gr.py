@@ -98,6 +98,9 @@ class Graph:
                     new_modules[module[name_id]] = module
         self.modules = new_modules
 
+    def get_modules(self):
+        return self.modules
+
     #== Simple functions for elementary operations =============================
 
     # returns id when given either id or the whole node

@@ -51,3 +51,25 @@ See the [Modules documentation](./docs/modules.md).
 
 There are several small projects which present how to use this system.
 They are in a separate repository [gr-web](https://github.com/vaclavblazej/gr-web) and use the `api.py` rest interface implementation.
+
+## Setup and run the backend
+
+The backend is coded with flask and is configured to run with uwsgi.
+Setup inspired from post [How To Serve Flask Applications with uWSGI and Nginx on Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uwsgi-and-nginx-on-ubuntu-20-04).
+
+The initial setup was made with the following commands.
+```
+sudo apt install python3-pip python3-dev build-essential libssl-dev libffi-dev python3-setuptools
+sudo apt install python3-venv
+python3 -m venv venv
+source venv/bin/activate
+pip3 install wheel
+pip3 install uwsgi flask
+```
+
+Run the server manually with the following commands.
+```
+source venv/bin/activate
+uwsgi config.ini
+deactivate
+```

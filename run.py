@@ -21,7 +21,7 @@ def run_cmd(db_file, cmd):
         return False
     if cmd == '':
         print('The command is empty')
-    elif cmd in ['clear', 'ls', 'add', 'rem']:
+    elif cmd in ['clear', 'ls', 'add', 'rem', 'modules']:
         db = gr_data.FileDB(db_file)
         if cmd == 'clear':
             graph = gr.Graph(db)
@@ -38,6 +38,9 @@ def run_cmd(db_file, cmd):
             data = gr.Graph(db)
             entry = json.loads(input())
             data.insert(entry)
+        elif cmd == 'modules':
+            data = gr.Graph(db)
+            print(json.dumps(data.get_modules(), indent=4))
         elif cmd == 'rem':
             pass
         else:
