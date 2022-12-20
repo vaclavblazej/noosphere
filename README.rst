@@ -1,8 +1,10 @@
-Refer to the `Documentation <http://noosphere.readthedocs.io/>`_ for usage explanation of concepts and the code.
+Refer to the `Documentation <http://noosphere.readthedocs.io/>`_ for usage, explanation of concepts, and code documentation.
 
 .. image:: https://readthedocs.org/projects/noosphere/badge/?version=latest
     :target: https://noosphere.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
+
+Contrary to documentation, this document describes information for Noosphere developers.
 
 Development of this project
 ---------------------------
@@ -21,15 +23,3 @@ Todos
     * they should have a structure, as json is subset of strings
 * consider adding 'any' type which is parent of all types
 * namespaces - every node has namespace of 'where it belongs'
-
-Last version Changelog
-----------------------
-
-* change types so that any entity may have more than one
-* split type system into attr_type and type_type
-* modules - system checks if it implements given module
-* change parameters to ids
-* change ids from int to alphanumeric
-* finish type integrity checking
-* add tests to check the code
-* basic concept implementation
