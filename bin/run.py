@@ -3,9 +3,9 @@
 import sys
 import json
 
-import gr
-import gr_data
-import gr_types
+import noosphere
+#  import gr_data
+#  import gr_types
 
 # == Main ========================================================================
 

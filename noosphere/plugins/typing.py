@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
 
-from gr import ref, unwrap, wrap, new_module
-import copy
+
+from noosphere.utils import ref, wrap, unwrap
 
 def new_type(graph, name):
     type_type_feat = graph.module('type')
